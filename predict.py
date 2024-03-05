@@ -1,7 +1,7 @@
 import os
 from cog import BasePredictor, Input, Path
 from typing import List
-import sys
+import sys, shutil
 sys.path.append('/content/TripoSR-hf')
 os.chdir('/content/TripoSR-hf')
 
@@ -64,7 +64,7 @@ def run_example(image_pil):
 class Predictor(BasePredictor):
     def setup(self) -> None:
         self.model = TSR.from_pretrained("/content/model", config_name="config.yaml", weight_name="model.ckpt")
-        self.model.renderer.set_chunk_size(131072)
+        self.model.renderer.set_chunk_size(0)
         self.model.to(device)
     def predict(
         self,
@@ -73,10 +73,8 @@ class Predictor(BasePredictor):
         foreground_ratio: float = Input(default=0.85, ge=0.5, le=1.0),
     ) -> Path:
         check_input_image(image_path)
-        from PIL import Image
         image = Image.open(image_path)
         processed_image = preprocess(image, do_remove_background, foreground_ratio)
         output_model = generate(processed_image, self.model)
-        import shutil
         shutil.copyfile(output_model, "/content/output_model.obj")
         return Path("/content/output_model.obj")
