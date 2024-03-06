@@ -52,7 +52,7 @@ def generate(image, model):
     scene_codes = model(image, device=device)
     mesh = model.extract_mesh(scene_codes)[0]
     mesh = to_gradio_3d_orientation(mesh)
-    mesh_path = tempfile.NamedTemporaryFile(suffix=".obj", delete=False)
+    mesh_path = tempfile.NamedTemporaryFile(suffix=".glb", delete=False)
     mesh.export(mesh_path.name)
     return mesh_path.name
 
@@ -72,9 +72,8 @@ class Predictor(BasePredictor):
         do_remove_background: bool = Input(default=True),
         foreground_ratio: float = Input(default=0.85, ge=0.5, le=1.0),
     ) -> Path:
-        check_input_image(image_path)
+        # check_input_image(image_path)
         image = Image.open(image_path)
         processed_image = preprocess(image, do_remove_background, foreground_ratio)
         output_model = generate(processed_image, self.model)
-        shutil.copyfile(output_model, "/content/output_model.obj")
-        return Path("/content/output_model.obj")
+        return Path(output_model)
